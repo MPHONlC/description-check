@@ -1,0 +1,37 @@
+name: 'Description Check'
+description: 'Compares description content across BBCode, GitHub, and Bethesda formats, ignoring formatting and platform-only content.'
+author: 'MPHONlC'
+branding:
+  icon: 'file-text'
+  color: 'blue'
+
+inputs:
+  bbcode_file:
+    description: 'Path to the BBCode-forum description file - leave blank to auto-detect README_BBCODE.txt or README_ESOUI.txt'
+    required: false
+    default: ''
+  github_file:
+    description: 'Path to the GitHub-flavored markdown description file (usually the repo README)'
+    required: false
+    default: 'README.md'
+  bethesda_file:
+    description: 'Path to the Bethesda (CommonMark) description file - leave blank to auto-detect README_COMMONMARK/PLAINMARKDOWN/BETHESDA.txt (any case)'
+    required: false
+    default: ''
+  ignore_patterns_file:
+    description: 'Optional file of regex patterns (one per line) to drop from all files before comparing'
+    required: false
+    default: '.github/description-ignore.txt'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Compare description content across platforms
+      shell: bash
+      run: |
+        python3 "${{ github.action_path }}/compare_descriptions.py" \
+          --bbcode-file "${{ inputs.bbcode_file }}" \
+          --github-file "${{ inputs.github_file }}" \
+          --bethesda-file "${{ inputs.bethesda_file }}" \
+          --ignore-file "${{ inputs.ignore_patterns_file }}" \
+          | tee -a "$GITHUB_STEP_SUMMARY"
