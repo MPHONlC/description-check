@@ -22,6 +22,10 @@ inputs:
     description: 'Optional file of regex patterns (one per line) to drop from all files before comparing'
     required: false
     default: '.github/description-ignore.txt'
+  manifest_file:
+    description: 'Optional .addon manifest - fails if a description mentions an AddOnVersion number that does not match it'
+    required: false
+    default: ''
 
 runs:
   using: 'composite'
@@ -34,4 +38,5 @@ runs:
           --github-file "${{ inputs.github_file }}" \
           --bethesda-file "${{ inputs.bethesda_file }}" \
           --ignore-file "${{ inputs.ignore_patterns_file }}" \
+          --manifest-file "${{ inputs.manifest_file }}" \
           | tee -a "$GITHUB_STEP_SUMMARY"

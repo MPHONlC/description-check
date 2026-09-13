@@ -115,6 +115,21 @@ def flatten_github_md(text, ignore_patterns):
     return t
 
 
+def extract_manifest_addon_version(text):
+    m = re.search(r'^##\s*AddOnVersion:\s*(\d+)', text, re.M)
+    return m.group(1) if m else None
+
+
+def find_addon_version_mentions(text):
+    mentions = []
+    for lineno, line in enumerate(text.splitlines(), 1):
+        if 'addonversion' not in line.lower():
+            continue
+        for m in re.finditer(r'\d{5,}', line):
+            mentions.append((lineno, m.group(0)))
+    return mentions
+
+
 def diff_preview(a, b, name_a, name_b, limit=60):
     diff = list(difflib.unified_diff(
         re.findall(r'.{1,100}(?:\s|$)', a),
@@ -130,6 +145,7 @@ def main():
     parser.add_argument('--github-file', default='README.md')
     parser.add_argument('--bethesda-file', default='')
     parser.add_argument('--ignore-file', default='.github/description-ignore.txt')
+    parser.add_argument('--manifest-file', default='')
     args = parser.parse_args()
 
     bbcode_path = resolve_platform_file(args.bbcode_file, 'README', 'bbcode')
@@ -145,6 +161,33 @@ def main():
 
     out = ["## Description content comparison (formatting ignored)", ""]
 
+    addon_version_problems = []
+    if args.manifest_file:
+        manifest_text = read(args.manifest_file)
+        if manifest_text is None:
+            addon_version_problems.append(f"manifest ({args.manifest_file}): file not found")
+        else:
+            real_version = extract_manifest_addon_version(manifest_text)
+            if real_version is None:
+                addon_version_problems.append(f"manifest ({args.manifest_file}): no '## AddOnVersion:' field found")
+            else:
+                for label, path, raw in [("BBCode", bbcode_path, bbcode_raw), ("GitHub", github_path, github_raw), ("Bethesda", bethesda_path, bethesda_raw)]:
+                    if raw is None:
+                        continue
+                    for lineno, mentioned in find_addon_version_mentions(raw):
+                        if mentioned != real_version:
+                            addon_version_problems.append(f"{label} ({path}:{lineno}): mentions AddOnVersion {mentioned}, manifest's real AddOnVersion is {real_version}")
+
+        out.append("## AddOnVersion staleness check")
+        out.append("")
+        if addon_version_problems:
+            for p in addon_version_problems:
+                out.append(f"- {p}")
+                print(f"::error::{p}")
+        else:
+            out.append(f"No stale AddOnVersion mentions found (manifest: {args.manifest_file}).")
+        out.append("")
+
     if ignore_patterns:
         out.append(f"Ignoring {len(ignore_patterns)} known platform-specific pattern(s) from `{ignore_file}` (e.g. donation links, legal boilerplate that isn't meant to appear on every platform).")
         out.append("")
@@ -153,6 +196,8 @@ def main():
     if missing:
         out.append(f"Could not read: {', '.join(missing)} - skipping comparison.")
         print('\n'.join(out))
+        if addon_version_problems:
+            sys.exit(1)
         return
 
     bbcode = flatten_bbcode(bbcode_raw, ignore_patterns)
@@ -181,6 +226,9 @@ def main():
     out.append("Some wording variation between platforms is normal and expected here - this is a similarity score, not an exact-match check like the changelog comparison.")
 
     print('\n'.join(out))
+
+    if addon_version_problems:
+        sys.exit(1)
 
 
 if __name__ == '__main__':

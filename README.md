@@ -48,6 +48,11 @@ jobs:
 | `github_file` | No | `README.md` | Path to the GitHub Flavored Markdown description file (usually the repo README) - this is GitHub's own required filename, so it is not auto-detected. |
 | `bethesda_file` | No | *(auto-detect)* | Path to the Bethesda (CommonMark) description file. Leave blank to auto-detect `README_COMMONMARK.txt`, then `README_PLAINMARKDOWN.txt`, then `README_BETHESDA.txt` (any case). |
 | `ignore_patterns_file` | No | `.github/description-ignore.txt` | Regex patterns (one per line) to drop from all three files before comparing. Missing file = no exclusions. |
+| `manifest_file` | No | `''` | Optional `.addon` manifest. If set, fails the run when a description file mentions an AddOnVersion number that doesn't match the manifest's real `## AddOnVersion:`. Leave blank to skip. |
+
+## AddOnVersion staleness check
+
+If `manifest_file` is set, every description file is scanned line by line for the word "AddOnVersion" (case-insensitive). Any line containing it that also has a number not matching the manifest's real `## AddOnVersion:` value fails the run - catches a hardcoded build number in your README going stale after a real update. Unlike the similarity comparison above, this check does fail on a mismatch.
 
 <details>
 <summary>Example step summary output</summary>
