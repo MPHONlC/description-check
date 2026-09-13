@@ -1,6 +1,6 @@
 # Description Check
 
-Compares description content across BBCode (any forum using BBCode, not tied to one specific site), GitHub Flavored Markdown, and Bethesda (CommonMark - Bethesda has no documented dialect name of its own; real sample files only show base CommonMark-level features in use), ignoring each platform's own formatting. Reports a similarity percentage plus a rough diff for every pair (BBCode vs GitHub, GitHub vs Bethesda, BBCode vs Bethesda) - it never fails the run, since some wording variation between platforms is normal for a description page (unlike a changelog, which is expected to match exactly - see [changelog-check](https://github.com/MPHONlC/changelog-check) for that).
+Compares description content across BBCode (any forum using BBCode), GitHub Flavored Markdown, and Bethesda (CommonMark), ignoring each platform's own formatting. Reports a similarity percentage plus a rough diff for every pair (BBCode vs GitHub, GitHub vs Bethesda, BBCode vs Bethesda) - it never fails the run, since some wording variation between platforms is normal for a description page (unlike a changelog, which is expected to match exactly - see [changelog-check](https://github.com/MPHONlC/changelog-check) for that).
 
 It knows the real structural differences between the three platforms out of the box:
 - GitHub-only decoration (badge images, an `<div align="center">` header block, `> [!NOTE]`/`> [!WARNING]`/etc. admonition markers, markdown tables) is stripped/unwrapped before comparing, not treated as content.
@@ -46,7 +46,7 @@ jobs:
 |---|---|---|---|
 | `bbcode_file` | No | *(auto-detect)* | Path to the BBCode-forum description file. Leave blank to auto-detect `README_BBCODE.txt`, then `README_ESOUI.txt` (any case). |
 | `github_file` | No | `README.md` | Path to the GitHub Flavored Markdown description file (usually the repo README) - this is GitHub's own required filename, so it is not auto-detected. |
-| `bethesda_file` | No | *(auto-detect)* | Path to the Bethesda description file. Bethesda has no documented markdown dialect name of its own - real sample files show only base CommonMark-level features in use, so this repo calls it CommonMark. Leave blank to auto-detect `README_COMMONMARK.txt`, then `README_PLAINMARKDOWN.txt`, then `README_BETHESDA.txt` (any case). |
+| `bethesda_file` | No | *(auto-detect)* | Path to the Bethesda (CommonMark) description file. Leave blank to auto-detect `README_COMMONMARK.txt`, then `README_PLAINMARKDOWN.txt`, then `README_BETHESDA.txt` (any case). |
 | `ignore_patterns_file` | No | `.github/description-ignore.txt` | Regex patterns (one per line) to drop from all three files before comparing. Missing file = no exclusions. |
 
 <details>
